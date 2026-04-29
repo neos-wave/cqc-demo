@@ -1,6 +1,0 @@
-[build]
-  base = "cqcdemo"
-  publish = "cqc/public"
-
-[functions]
-  directory = "cqc/netlify/functions"
