@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CQC Readiness Review | Neos Wave</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--nw-purple:#7B1FA2;--nw-magenta:#D500F9;--nw-cyan:#00BCD4;--nw-grad:linear-gradient(135deg,#7B1FA2,#D500F9,#00BCD4);--navy:#7B1FA2;--navy-dark:#5C007A;--purple:#D500F9;--safe:#1B5E20;--safe-light:#E8F5E9;--effective:#1565C0;--effective-light:#E3F2FD;--caring:#E65100;--caring-light:#FFF3E0;--responsive:#6A1B9A;--responsive-light:#F3E5F5;--wellled:#263238;--wellled-light:#ECEFF1;--text:#1A1A2E;--muted:#666;--border:#E5E7EB;--bg:#F9FAFB;--font-display:'Playfair Display',serif;--font-body:'DM Sans',sans-serif;--font-mono:'DM Mono',monospace}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font-body);color:var(--text);background:var(--bg);line-height:1.6}
+button{cursor:pointer;font-family:var(--font-body)}
+textarea,input{font-family:var(--font-body)}
+
+/* === PIN === */
+.pin-screen{height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#1A1A2E 0%,#2D1B4E 40%,#1A1A2E 100%);padding:24px}
+.pin-box{background:rgba(255,255,255,.06);border-radius:24px;padding:48px 40px;border:1px solid rgba(255,255,255,.1);text-align:center;max-width:420px;width:100%;backdrop-filter:blur(20px)}
+.pin-icon{width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:28px}
+.pin-title{font-family:var(--font-display);color:#fff;font-size:26px;margin-bottom:8px;font-weight:600}
+.pin-sub{color:rgba(255,255,255,.5);font-size:14px;margin-bottom:32px}
+.pin-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.pin-inputs.shake{animation:shake .4s ease}
+.pin-d{width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;font-family:var(--font-mono);background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;outline:none;caret-color:transparent;transition:all .2s}
+.pin-d:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.12)}
+.pin-d.f{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.3)}
+.pin-d.e{border-color:#EF5350}
+.pin-err{color:#EF5350;font-size:13px;font-weight:500;min-height:20px}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* === INTRO === */
+.intro{height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#1A1A2E 0%,#2D1B4E 40%,#1A1A2E 100%);padding:24px;text-align:center;color:#fff}
+.intro h1{font-family:var(--font-display);font-size:clamp(28px,5vw,44px);font-weight:700;margin-bottom:16px;line-height:1.15}
+.intro p{font-size:17px;opacity:.75;line-height:1.6;margin-bottom:32px;max-width:540px}
+.intro-btn{padding:16px 40px;background:#fff;color:var(--navy);border:none;border-radius:12px;font-size:17px;font-weight:700;box-shadow:0 8px 32px rgba(0,0,0,.3);transition:transform .2s}
+.intro-btn:hover{transform:translateY(-2px)}
+.intro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:40px;max-width:560px;width:100%;text-align:left}
+.intro-card{background:rgba(255,255,255,.06);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.1)}
+.intro-card strong{display:block;font-size:14px;margin-bottom:4px}
+.intro-card span{font-size:12px;opacity:.6}
+
+/* === CONTEXT === */
+.ctx-wrap{height:100%;overflow-y:auto;background:var(--bg)}
+.hdr{padding:10px 24px;border-bottom:1px solid var(--border);background:#fff;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.hdr .t{font-family:var(--font-display);font-size:18px;color:var(--navy);font-weight:600}
+.hdr .r{margin-left:auto}
+.ctx-form{max-width:600px;margin:0 auto;padding:40px 24px}
+.ctx-form h2{font-family:var(--font-display);font-size:26px;color:var(--navy);text-align:center;margin-bottom:8px}
+.ctx-form .d{text-align:center;color:var(--muted);font-size:15px;margin-bottom:28px}
+.fg{margin-bottom:18px}
+.fg label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.fg input,.fg select{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:8px;font-size:15px;background:#fff;outline:none;transition:border-color .2s}
+.fg input:focus,.fg select:focus{border-color:var(--navy)}
+.btn-p{width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;margin-top:8px;transition:background .2s}
+.btn-p:hover{background:var(--navy-dark)}
+
+/* === INSPECTION === */
+.insp{height:100%;display:flex;flex-direction:column}
+.insp-hdr{padding:8px 16px;border-bottom:1px solid var(--border);background:#fff;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.insp-hdr .t{font-family:var(--font-display);font-size:15px;color:var(--navy);font-weight:600}
+.live{font-size:11px;padding:3px 10px;border-radius:20px;background:#FFEBEE;color:#C62828;font-weight:700;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.insp-body{flex:1;display:flex;overflow:hidden}
+
+/* Tracker */
+.trk{width:280px;border-right:1px solid var(--border);background:#fff;overflow-y:auto;flex-shrink:0;padding:12px;font-size:12px}
+.trk h4{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.trk-domain{margin-bottom:12px}
+.trk-domain-hdr{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;margin-bottom:4px;cursor:pointer;transition:background .2s}
+.trk-domain-hdr:hover{background:var(--bg)}
+.trk-domain-hdr.active{color:#fff}
+.trk-domain-hdr .icon{font-size:16px}
+.trk-domain-hdr .lbl{font-weight:700;font-size:13px}
+.trk-domain-hdr .cnt{margin-left:auto;font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px}
+.trk-qs{padding-left:8px}
+.trk-qs-item{display:flex;align-items:flex-start;gap:6px;padding:4px 6px;border-radius:6px;margin-bottom:2px;line-height:1.4;transition:background .2s}
+.trk-qs-item:hover{background:var(--bg)}
+.trk-qs-item .dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0;border:1.5px solid #CCC;background:#fff}
+.trk-qs-item .dot.covered{background:#4CAF50;border-color:#4CAF50}
+.trk-qs-item .dot.concern{background:#FF9800;border-color:#FF9800}
+.trk-qs-item .dot.gap{background:#F44336;border-color:#F44336}
+.trk-qs-item .lbl{font-size:11px;color:var(--muted)}
+.trk-qs-item .lbl.covered{color:var(--text)}
+
+.trk-summary{margin-top:8px;padding:10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)}
+.trk-summary .row{display:flex;justify-content:space-between;padding:2px 0}
+.trk-summary .k{color:var(--muted)}
+.trk-summary .v{font-weight:700}
+.trk-legend{display:flex;gap:10px;margin-top:8px;font-size:10px;color:var(--muted)}
+.trk-legend span{display:flex;align-items:center;gap:3px}
+.trk-legend .ld{width:6px;height:6px;border-radius:50%}
+.trk-missed{margin-top:8px;padding:8px 10px;background:#FFF8E1;border-radius:8px;border:1px solid #FFE082;font-size:11px;color:#F57F17}
+.trk-missed button{display:block;margin-top:6px;padding:4px 10px;border-radius:6px;border:1px solid #FFB300;background:#fff;font-size:11px;color:#F57F17;font-weight:600}
+.trk-missed button:hover{background:#FFF8E1}
+
+/* Chat */
+.chat{flex:1;display:flex;flex-direction:column;min-width:0}
+.msgs{flex:1;overflow-y:auto;padding:16px 20px}
+.msg{max-width:85%;margin-bottom:14px;animation:fi .3s ease}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg.i{margin-right:auto}
+.msg.u{margin-left:auto}
+.msg.s{margin:0 auto;max-width:90%;text-align:center}
+.bub{padding:12px 16px;border-radius:14px;font-size:14px;line-height:1.65}
+.msg.i .bub{background:#fff;border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg.u .bub{background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.msg.s .bub{background:var(--effective-light);color:var(--navy);font-size:12px;font-weight:600;padding:8px 14px;border-radius:20px;display:inline-block}
+.snd{font-size:11px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+.msg.i .snd{color:var(--navy)}
+.msg.u .snd{color:var(--muted);justify-content:flex-end}
+.mtime{font-size:10px;color:var(--muted);margin-top:3px}
+.typing{display:flex;gap:4px;padding:12px 16px;background:#fff;border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
+.typing span{width:7px;height:7px;background:#999;border-radius:50%;animation:bce 1.4s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+.cinp{padding:12px 16px;border-top:1px solid var(--border);background:#fff;flex-shrink:0}
+.cinp-row{display:flex;gap:8px;align-items:flex-end}
+.cta{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;resize:none;outline:none;min-height:44px;max-height:140px;line-height:1.5;transition:border-color .2s}
+.cta:focus{border-color:var(--navy)}
+.csend{width:44px;height:44px;border-radius:12px;background:var(--navy);color:#fff;border:none;font-size:16px;flex-shrink:0;transition:background .2s}
+.csend:hover{background:var(--navy-dark)}
+.csend:disabled{background:#CCC;cursor:not-allowed}
+.chints{font-size:11px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.chints button{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--muted);transition:all .2s}
+.chints button:hover{border-color:var(--navy);color:var(--navy)}
+
+/* Report */
+.rpt-wrap{height:100%;overflow-y:auto;background:var(--bg)}
+.rpt{max-width:800px;margin:0 auto;padding:32px 24px}
+.rpt-hdr{background:linear-gradient(135deg,#7B1FA2,#D500F9,#00BCD4);border-radius:20px;padding:32px;color:#fff;margin-bottom:28px}
+.rpt-hdr h1{font-family:var(--font-display);font-size:28px;margin-bottom:6px}
+.rpt-hdr .sub{opacity:.8;font-size:14px}
+.rpt-stats{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.rpt-stat{background:rgba(255,255,255,.12);border-radius:10px;padding:10px 14px}
+.rpt-stat strong{font-size:20px;display:block}
+.rpt-stat span{font-size:11px;opacity:.7}
+.rgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:24px}
+.rcell{text-align:center;padding:12px 6px;border-radius:10px}
+.rcell .ri{font-size:20px}
+.rcell .rl{font-size:11px;font-weight:700}
+.rcell .rr{font-size:10px;font-weight:700;margin-top:3px}
+.rbox{border-radius:12px;padding:20px;margin-bottom:20px}
+.rbox h3{font-family:var(--font-display);font-size:18px;margin-bottom:10px}
+.rbox p{font-size:14px;line-height:1.7}
+.rfind{padding:8px 12px;border-radius:8px;margin-bottom:5px;font-size:13px;line-height:1.5}
+.rfind.str{background:#F1F8E9}
+.rfind.gap{background:#FFF3E0}
+.rfind.act{background:#E8EAF6}
+.pbox{background:#FFF8E1;border-radius:12px;padding:20px;margin-bottom:24px;border:1px solid #FFE082}
+.pbox h3{font-size:18px;color:#F57F17;margin-bottom:12px;font-family:var(--font-display)}
+.pi{display:flex;gap:10px;padding:10px 0}
+.pi+.pi{border-top:1px solid rgba(255,224,130,.25)}
+.pn{width:24px;height:24px;border-radius:50%;background:#F57F17;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+
+/* Coverage section in report */
+.cov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-bottom:16px}
+.cov-item{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:6px;font-size:12px;background:#fff;border:1px solid var(--border)}
+.cov-item .cd{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cov-item .cd.g{background:#4CAF50}
+.cov-item .cd.o{background:#FF9800}
+.cov-item .cd.r{background:#F44336}
+.cov-item .cd.x{background:#CCC}
+
+.spinner{border-radius:50%;border:4px solid #E8EAF6;border-top-color:var(--navy);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hidden{display:none!important}
+@media(max-width:768px){.trk{display:none}.msg{max-width:95%}.rgrid{grid-template-columns:repeat(3,1fr)}.intro-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div id="pin-screen" class="pin-screen"><div class="pin-box"><div class="pin-icon">🔒</div><h2 class="pin-title">Access Required</h2><p class="pin-sub">Enter your 6-digit access code</p><div id="pin-inputs" class="pin-inputs"></div><div id="pin-error" class="pin-err"></div><p style="color:rgba(255,255,255,.3);font-size:12px;margin-top:16px">Contact your administrator for access</p></div></div>
+
+<div id="intro-screen" class="intro hidden"><div style="max-width:600px">
+<div style="display:inline-block;background:rgba(255,255,255,.08);padding:6px 16px;border-radius:20px;font-size:12px;margin-bottom:20px;border:1px solid rgba(255,255,255,.15)">🔍 Comprehensive CQC Readiness Review for Care Homes</div>
+<h1>CQC Readiness Review</h1>
+<p>Find out how inspection-ready your care home really is. Our AI reviewer works through all 34 quality statements — asking the same questions a CQC inspector would — so you can identify and fix gaps before they do.</p>
+<button class="intro-btn" onclick="showScreen('context')">Start Your Review →</button>
+<div class="intro-grid">
+<div class="intro-card"><strong>34</strong><span>Quality statements covered</span></div>
+<div class="intro-card"><strong>120+</strong><span>Evidence checkpoints</span></div>
+<div class="intro-card"><strong>📋</strong><span>Full gap analysis report</span></div>
+</div>
+</div><div style="position:fixed;bottom:20px;font-size:12px;color:rgba(255,255,255,.4)">powered by neos wave</div></div>
+
+<div id="context-screen" class="ctx-wrap hidden">
+<div class="hdr"><span style="font-size:18px">🔍</span><span class="t">Readiness Review Setup</span></div>
+<div class="ctx-form">
+<h2>Your Care Home</h2><p class="d">This helps the inspector ask targeted questions</p>
+<div class="fg"><label>Care Home Name</label><input id="c-name" placeholder="e.g. Oakwood Care Home"></div>
+<div class="fg"><label>Service Type</label><select id="c-type"><option>Residential Care Home</option><option>Nursing Home</option><option>Residential — Dementia Specialist</option><option>Nursing — Dementia Specialist</option><option>Dual Registered</option></select></div>
+<div class="fg"><label>Registered Beds</label><input id="c-size" placeholder="e.g. 42"></div>
+<div class="fg"><label>Location</label><input id="c-loc" placeholder="e.g. West Midlands"></div>
+<div class="fg"><label>Registered Manager</label><input id="c-mgr" placeholder="e.g. Sarah Johnson"></div>
+<div class="fg"><label>Current CQC Rating</label><select id="c-rating"><option>Not yet rated</option><option>Outstanding</option><option>Good</option><option>Requires Improvement</option><option>Inadequate</option></select></div>
+<div class="fg"><label>Areas of concern? (optional)</label><input id="c-concerns" placeholder="e.g. Staffing, medication management..."></div>
+<button class="btn-p" onclick="startInspection()">Start Readiness Review →</button>
+</div></div>
+
+<div id="inspect-screen" class="insp hidden">
+<div class="insp-hdr">
+<span style="font-size:16px">🔍</span><span class="t" id="i-title">Readiness Review</span><span style="font-size:11px;padding:3px 10px;border-radius:20px;background:#E8F5E9;color:#2E7D32;font-weight:700">● In Progress</span>
+<div style="margin-left:auto;display:flex;gap:8px">
+<button onclick="generateReport()" style="padding:5px 12px;border-radius:8px;border:1.5px solid var(--navy);background:none;color:var(--navy);font-size:12px;font-weight:600">Generate Report →</button>
+</div></div>
+<div class="insp-body">
+<div class="trk" id="tracker"></div>
+<div class="chat">
+<div class="msgs" id="msgs"></div>
+<div class="cinp">
+<div class="cinp-row">
+<textarea class="cta" id="cinput" rows="1" placeholder="Respond to the inspector..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"></textarea>
+<button class="csend" id="sbtn" onclick="send()">↑</button>
+</div>
+<div class="chints">
+<span>Shift+Enter for new line</span>
+<button onclick="askClarify()">Ask to clarify ↺</button>
+<button onclick="skipToNext()">Skip to next area →</button>
+<button onclick="promptMissed()">Cover missed areas ⚡</button>
+</div>
+</div></div></div></div>
+
+<div id="report-screen" class="rpt-wrap hidden">
+<div class="hdr"><span style="font-size:18px">📋</span><span class="t">Inspection Report</span>
+<div class="r"><button onclick="showScreen('inspect')" style="padding:5px 12px;border-radius:8px;border:1.5px solid var(--border);background:none;font-size:12px;font-weight:600">← Back</button></div></div>
+<div id="rpt-content"></div></div>
+
+<script>
+// ======================================================================
+// ALL 34 QUALITY STATEMENTS WITH EVIDENCE CHECKPOINTS
+// ======================================================================
+const QS_DATA = {
+safe:{label:"Safe",icon:"🛡️",color:"#1B4D3E",lt:"#E8F5E9",desc:"Protection from abuse and avoidable harm",qs:[
+{id:"S1",t:"Learning culture",reg:"Reg 17",checks:["Incident/near-miss reporting system","Root cause analysis process","Lessons shared across shifts","Practice changes from learning","Duty of candour applied"]},
+{id:"S2",t:"Safe systems, pathways & transitions",reg:"Reg 12",checks:["Pre-admission assessment process","Hospital transfer documentation","Structured shift handovers (SBAR or similar)","GP/pharmacy arrangements"]},
+{id:"S3",t:"Safeguarding",reg:"Reg 13",checks:["Named safeguarding lead & training level","Staff training (induction + refreshers)","Staff can describe abuse types & reporting","Residents/families know how to raise concerns","Safeguarding incidents recorded & reported"]},
+{id:"S4",t:"Involving people to manage risks",reg:"Reg 12",checks:["Person-centred risk assessments","Resident/family involvement in risk planning","Positive risk-taking supported","Regular reviews (monthly + after changes)"]},
+{id:"S5",t:"Safe environments",reg:"Reg 15",checks:["Fire risk assessment & drills","Legionella risk assessment & water monitoring","Equipment maintenance certificates","Environment adapted for dementia/sensory needs","COSHH assessments current"]},
+{id:"S6",t:"Safe & effective staffing",reg:"Reg 18/19",checks:["Dependency tool for staffing levels","Recruitment files (DBS, refs, right-to-work)","NMC registration verified (if nursing)","Induction/Care Certificate within 12 weeks","Training compliance tracked (85%+)","Agency use monitored"]},
+{id:"S7",t:"Infection prevention & control",reg:"Reg 12 IPC",checks:["Named IPC lead & policy","Monthly IPC audits","Hand hygiene audit compliance","Outbreak management plan","Clinical waste & laundry processes"]}
+]},
+effective:{label:"Effective",icon:"⚡",color:"#1A237E",lt:"#E8EAF6",desc:"Care achieves good outcomes",qs:[
+{id:"E1",t:"Assessing needs",reg:"Reg 9",checks:["Holistic pre-admission assessments","Validated tools used (MUST, Waterlow, Abbey)","Care plans within 48hrs of admission","Monthly reviews + after changes","Resident/family involvement in planning"]},
+{id:"E2",t:"Delivering evidence-based care",reg:"Reg 12",checks:["NICE guidelines followed","Clinical governance process","Evidence-based wound care & protocols","Staff can explain care approach rationale"]},
+{id:"E3",t:"Staff working together",reg:"Reg 12",checks:["Regular GP visits with documented outcomes","Referral pathways to specialists (SALT, dietitian, tissue viability, mental health)","Multi-disciplinary coordination","Internal team coordination (care, nursing, activities, kitchen)"]},
+{id:"E4",t:"Supporting healthier lives",reg:"Reg 9",checks:["MUST screening & dietary plans","Fluid intake monitoring for at-risk residents","Physical activity promoted","Oral health assessments","Access to routine healthcare (dental, optician, podiatry, flu jabs)"]},
+{id:"E5",t:"Monitoring & improving outcomes",reg:"Reg 17",checks:["Monthly quality metrics tracked (falls, PU, infections, weight, med errors)","Trend analysis conducted","QI initiatives with documented impact","Audit action plans completed"]},
+{id:"E6",t:"Consent to care & treatment",reg:"Reg 11 / MCA",checks:["Written consent documented","MCA assessments decision-specific","Best interest decisions properly recorded","DoLS/LPS applications submitted & tracked","Staff understand MCA principles"]}
+]},
+caring:{label:"Caring",icon:"💛",color:"#E65100",lt:"#FFF3E0",desc:"Compassion, kindness, dignity, respect",qs:[
+{id:"C1",t:"Kindness, compassion & dignity",reg:"Reg 10",checks:["Warm unhurried interactions observed consistently","Privacy maintained during personal care","Staff know residents' preferred names","Positive feedback from residents/families"]},
+{id:"C2",t:"Treating people as individuals",reg:"Reg 9",checks:["Life histories completed & actively used","Cultural/religious/dietary needs documented & met","Genuine choice over daily routines","'This is me' or equivalent documents in use"]},
+{id:"C3",t:"Independence, choice & control",reg:"Reg 9",checks:["Staff promote independence","Meaningful activities programme based on interests","Community connections maintained","Residents can personalise rooms"]},
+{id:"C4",t:"Responding to immediate needs",reg:"Reg 9",checks:["Call bell response times monitored","Pain assessment tools used (incl. Abbey for non-verbal)","Non-verbal distress recognised & responded to","End-of-life care planned with advance care plans","Anticipatory medications available"]}
+]},
+responsive:{label:"Responsive",icon:"🔄",color:"#4A148C",lt:"#F3E5F5",desc:"Services organised to meet needs",qs:[
+{id:"R1",t:"Person-centred care",reg:"Reg 9",checks:["Care plans reflect resident's voice","Care delivery matches care plans (audited)","Plans adapted when needs change","First-person language where possible"]},
+{id:"R2",t:"Care provision, integration & continuity",reg:"Reg 12",checks:["Named keyworkers","Hospital return triggers 24hr care plan review","Integrated NHS pathways working","Complex needs have coordinated plans"]},
+{id:"R3",t:"Providing information",reg:"Reg 9 / AIS",checks:["Service user guide provided at admission","Complaints procedure displayed & accessible","Accessible Information Standard implemented","Advocacy services information available"]},
+{id:"R4",t:"Listening to & involving people",reg:"Reg 16",checks:["Residents'/relatives' meetings regular with actions","Complaints acknowledged, investigated & responded to in timescale","'You said, we did' evidence","Satisfaction surveys conducted & acted on"]},
+{id:"R5",t:"Equity in access",reg:"Reg 9 / Equality Act",checks:["Reasonable adjustments made","EDI training for staff","Communication aids/translation available","Barriers to access identified & addressed"]}
+]},
+wellLed:{label:"Well-led",icon:"🏛️",color:"#263238",lt:"#ECEFF1",desc:"Leadership and governance",qs:[
+{id:"W1",t:"Shared direction & culture",reg:"Reg 17",checks:["Values stated & staff can articulate them","Manager visible & sets positive culture","Staff morale good (retention, feedback)","Clear direction staff understand"]},
+{id:"W2",t:"Capable, compassionate leaders",reg:"Reg 5",checks:["RM holds/working towards Level 5","Leadership development for seniors","Leaders demonstrate competence","Regular supervision of senior staff"]},
+{id:"W3",t:"Freedom to speak up",reg:"Reg 17 / Duty of candour",checks:["Whistleblowing policy accessible & known","Staff confident raising concerns","Duty of candour applied — families informed","Concerns documented & actioned"]},
+{id:"W4",t:"Workforce equality, diversity & inclusion",reg:"Equality Act",checks:["EDI policies in place & staff trained","Diverse staff feel included","Bullying/harassment dealt with promptly"]},
+{id:"W5",t:"Governance, management & sustainability",reg:"Reg 17",checks:["Audit schedule covers all key areas","Audit findings produce action plans (owners + deadlines)","Reg 28 provider visits monthly & documented","RM produces regular quality reports"]},
+{id:"W6",t:"Partnerships & communities",reg:"Reg 17",checks:["Constructive relationships with LA/ICB","Families treated as partners","Community engagement active"]},
+{id:"W7",t:"Learning, improvement & innovation",reg:"Reg 17",checks:["Development beyond mandatory training","QI projects with evidence of impact","Learning from external sources (CQC reports, research)"]}
+]}
+};
+
+const DOMAINS=["safe","effective","caring","responsive","wellLed"];
+const RM={outstanding:{l:"Outstanding",c:"#1B5E20",bg:"#E8F5E9",i:"★"},good:{l:"Good",c:"#2E7D32",bg:"#F1F8E9",i:"●"},requiresImprovement:{l:"Requires Improvement",c:"#E65100",bg:"#FFF3E0",i:"▲"},inadequate:{l:"Inadequate",c:"#B71C1C",bg:"#FFEBEE",i:"✕"},pending:{l:"Pending",c:"#999",bg:"#F5F5F5",i:"○"}};
+
+// ======================================================================
+// STATE
+// ======================================================================
+let ctx={},history=[],curDom=0,qsCoverage={},streaming=false,report=null;
+// qsCoverage[qsId] = 'pending'|'covered'|'concern'|'gap'
+
+function initCoverage(){qsCoverage={};DOMAINS.forEach(dk=>{QS_DATA[dk].qs.forEach(q=>{qsCoverage[q.id]='pending';})});}
+initCoverage();
+
+function getTotalQS(){let n=0;DOMAINS.forEach(dk=>n+=QS_DATA[dk].qs.length);return n;}
+function getCoveredQS(){return Object.values(qsCoverage).filter(v=>v!=='pending').length;}
+function getDomainCoverage(dk){const qs=QS_DATA[dk].qs;const total=qs.length;const covered=qs.filter(q=>qsCoverage[q.id]!=='pending').length;return{total,covered};}
+
+// ======================================================================
+// BUILD SYSTEM PROMPT
+// ======================================================================
+function buildPrompt(){
+  let qsList='';
+  DOMAINS.forEach(dk=>{
+    const d=QS_DATA[dk];
+    qsList+=`\n\n### ${d.label.toUpperCase()} DOMAIN\n`;
+    d.qs.forEach(q=>{
+      qsList+=`\n${q.id}: ${q.t} (${q.reg})\nEvidence checkpoints you MUST probe:\n`;
+      q.checks.forEach(c=>{qsList+=`- ${c}\n`;});
+    });
+  });
+
+  return `You are a CQC compliance expert conducting a comprehensive readiness review for a care home. Your role is to ask the questions a real CQC inspector would ask, helping the registered manager identify gaps in their evidence before a real inspection. Be thorough but supportive — you're here to help them prepare, not to intimidate. This is a FULL review covering all 34 quality statements.
+
+CARE HOME:
+- Name: ${ctx.name||'Not provided'}
+- Type: ${ctx.type||'Residential Care Home'}
+- Beds: ${ctx.size||'Not specified'}
+- Location: ${ctx.loc||'Not specified'}
+- Registered Manager: ${ctx.mgr||'Not specified'}
+- Current Rating: ${ctx.rating||'Not specified'}
+- Concerns: ${ctx.concerns||'None specified'}
+
+YOUR INSPECTION CHECKLIST — ALL 34 QUALITY STATEMENTS:
+${qsList}
+
+CRITICAL RESPONSE RULES:
+
+1. Ask exactly ONE question per message. Never two, never a list. One focused question.
+2. Keep your messages SHORT — 2-4 sentences maximum. No long preambles or summaries.
+3. After the manager responds, either ask a brief follow-up on the same point OR move to the next area with a single new question.
+4. Do NOT list what you're going to cover. Just ask the question.
+5. Do NOT recap extensively. A brief "Thank you" or "That's helpful" then straight to the next question.
+
+INSPECTION PROTOCOL:
+
+1. Work through domains in order: Safe → Effective → Caring → Responsive → Well-led
+2. For each quality statement, probe the evidence checkpoints — but ONE question at a time
+3. You may naturally cover multiple checkpoints in a follow-up conversation, but never front-load them
+4. When you've covered a quality statement's checkpoints, include a marker on its own line: [[S1]]
+5. You can mark multiple QS at once if a response covered several: [[S1]][[S2]]
+6. When transitioning domains, use: --- MOVING TO [DOMAIN] ---
+7. After all domains, use: --- INSPECTION COMPLETE ---
+
+QUESTION STYLE:
+- One direct, specific question. Not "Tell me about X, Y and Z" — just "Tell me about X."
+- Reference regulations briefly where relevant
+- Ask for one specific example at a time
+- Probe timescales: "When was this last reviewed?"
+- Push on vague answers briefly: "Can you be more specific?"
+- Never greet with time of day (no good morning/afternoon)
+
+COVERAGE DISCIPLINE:
+- Before moving to the next domain, check you've covered all quality statements
+- Aim for 2-3 exchanges per quality statement
+- Safety-critical areas (S3 Safeguarding, S6 Staffing, S7 IPC, E6 Consent) deserve slightly deeper probing — but still one question at a time
+
+TONE: Warm, professional, concise. You're here to help them prepare. Be encouraging about strengths. Be direct about concerns. Keep it conversational — like a knowledgeable colleague, not an interrogator.
+
+Skip any introduction — the manager has already been briefed. Go straight to your first question about learning culture (S1). Ask ONE question about incident reporting.`;
+}
+
+// ======================================================================
+// PIN
+// ======================================================================
+(function(){
+  const c=document.getElementById('pin-inputs');
+  for(let i=0;i<6;i++){const inp=document.createElement('input');inp.type='text';inp.inputMode='numeric';inp.maxLength=1;inp.className='pin-d';inp.dataset.i=i;inp.addEventListener('input',piI);inp.addEventListener('keydown',piK);if(!i)inp.addEventListener('paste',piP);c.appendChild(inp);}
+  if(sessionStorage.getItem('cqc_session'))showScreen('intro');else c.children[0].focus();
+})();
+function pds(){return document.querySelectorAll('.pin-d')}
+function pv(){return Array.from(pds()).map(d=>d.value).join('')}
+function piI(e){const i=+e.target.dataset.i;let v=e.target.value.replace(/\D/g,'');if(v.length>1)v=v.slice(-1);e.target.value=v;e.target.classList.toggle('f',!!v);document.getElementById('pin-error').textContent='';pds().forEach(d=>d.classList.remove('e'));if(v&&i<5)pds()[i+1].focus();if(v&&i===5&&pv().length===6)pinGo(pv());}
+function piK(e){const i=+e.target.dataset.i;if(e.key==='Backspace'&&!e.target.value&&i>0){const p=pds()[i-1];p.value='';p.classList.remove('f');p.focus();}if(e.key==='Enter'&&pv().length===6)pinGo(pv());}
+function piP(e){e.preventDefault();const p=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,6);const d=pds();for(let i=0;i<p.length;i++){d[i].value=p[i];d[i].classList.add('f');}if(p.length===6)pinGo(p);else if(p.length)d[Math.min(p.length,5)].focus();}
+async function pinGo(code){
+  try{const r=await fetch('/.netlify/functions/validate-pin',{method:'POST',body:JSON.stringify({pin:code})});const d=await r.json();if(d.valid){sessionStorage.setItem('cqc_session',d.token||'ok');showScreen('intro');}else pf();}
+  catch{if(code==='291025'){sessionStorage.setItem('cqc_session','demo');showScreen('intro');}else pf();}
+}
+function pf(){document.getElementById('pin-error').textContent='Invalid access code';const c=document.getElementById('pin-inputs');c.classList.add('shake');pds().forEach(d=>{d.value='';d.classList.remove('f');d.classList.add('e')});setTimeout(()=>{c.classList.remove('shake');pds()[0].focus()},500);}
+
+// ======================================================================
+// NAV
+// ======================================================================
+function showScreen(n){['pin-screen','intro-screen','context-screen','inspect-screen','report-screen'].forEach(id=>document.getElementById(id).classList.toggle('hidden',id!==n+'-screen'));}
+
+// ======================================================================
+// START
+// ======================================================================
+function startInspection(){
+  ctx={name:document.getElementById('c-name').value,type:document.getElementById('c-type').value,size:document.getElementById('c-size').value,loc:document.getElementById('c-loc').value,mgr:document.getElementById('c-mgr').value,rating:document.getElementById('c-rating').value,concerns:document.getElementById('c-concerns').value};
+  document.getElementById('i-title').textContent=(ctx.name||'Care Home')+' — Readiness Review';
+  history=[];curDom=0;initCoverage();report=null;
+  showScreen('inspect');
+  renderTracker();
+  document.getElementById('msgs').innerHTML='';
+  addSysMsg('🛡️ Starting with Safe domain');
+  // Pre-written welcome — short and clear
+  addMsg('inspector',`Welcome${ctx.mgr?', '+ctx.mgr:''}. This is your CQC readiness review for **${ctx.name||'your care home'}**.\n\nI'll work through all five key questions — asking one thing at a time, just as an inspector would. There are no wrong answers — this is about finding gaps before they do.\n\nLet's start with **Safe**.`);
+  // Now send to AI for the first real probing question
+  sendAI(null,true);
+}
+
+// ======================================================================
+// TRACKER
+// ======================================================================
+function renderTracker(){
+  const el=document.getElementById('tracker');
+  let h='<h4>Quality Statement Coverage</h4>';
+
+  DOMAINS.forEach((dk,di)=>{
+    const d=QS_DATA[dk];
+    const{total,covered}=getDomainCoverage(dk);
+    const isActive=di===curDom;
+    const isDone=covered===total&&di<curDom;
+    const bg=isActive?d.color:isDone?d.lt:'#fff';
+    const tc=isActive?'#fff':d.color;
+
+    h+=`<div class="trk-domain"><div class="trk-domain-hdr ${isActive?'active':''}" style="background:${bg}">
+      <span class="icon">${d.icon}</span><span class="lbl" style="color:${tc}">${d.label}</span>
+      <span class="cnt" style="background:${isActive?'rgba(255,255,255,.2)':d.lt};color:${isActive?'#fff':d.color}">${covered}/${total}</span>
+    </div><div class="trk-qs">`;
+
+    d.qs.forEach(q=>{
+      const st=qsCoverage[q.id];
+      const dotCls=st==='pending'?'':st;
+      const lblCls=st!=='pending'?'covered':'';
+      h+=`<div class="trk-qs-item"><span class="dot ${dotCls}"></span><span class="lbl ${lblCls}">${q.id}: ${q.t}</span></div>`;
+    });
+
+    h+='</div></div>';
+  });
+
+  // Summary
+  const totalCov=getCoveredQS();const totalAll=getTotalQS();
+  h+=`<div class="trk-summary"><div class="row"><span class="k">Covered</span><span class="v">${totalCov}/${totalAll}</span></div>
+    <div class="row"><span class="k">Messages</span><span class="v">${history.length}</span></div></div>`;
+  h+=`<div class="trk-legend"><span><span class="ld" style="background:#4CAF50"></span>Covered</span><span><span class="ld" style="background:#FF9800"></span>Concern</span><span><span class="ld" style="background:#F44336"></span>Gap</span><span><span class="ld" style="background:#CCC"></span>Pending</span></div>`;
+
+  // Missed areas prompt
+  const currentDomain=QS_DATA[DOMAINS[curDom]];
+  const missed=currentDomain.qs.filter(q=>qsCoverage[q.id]==='pending');
+  if(missed.length>0&&history.length>6){
+    h+=`<div class="trk-missed">⚠️ ${missed.length} area${missed.length>1?'s':''} in ${currentDomain.label} not yet covered:
+    ${missed.map(q=>`<br>• ${q.id}: ${q.t}`).join('')}
+    <button onclick="promptMissed()">Ask inspector to cover these</button></div>`;
+  }
+
+  el.innerHTML=h;
+}
+
+// ======================================================================
+// CHAT UI
+// ======================================================================
+function addMsg(role,text){
+  const c=document.getElementById('msgs');const div=document.createElement('div');
+  const now=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const cls=role==='inspector'?'i':'u';
+  const sender=role==='inspector'?'🔍 CQC Reviewer':'🏠 Registered Manager';
+
+  let display=text;
+  // Parse QS coverage markers
+  const qsMarkers=text.match(/\[\[([A-Z]\d+)\]\]/g);
+  if(qsMarkers){
+    qsMarkers.forEach(m=>{
+      const id=m.replace(/[\[\]]/g,'');
+      if(qsCoverage[id]==='pending')qsCoverage[id]='covered';
+    });
+    display=display.replace(/\[\[[A-Z]\d+\]\]/g,'');
+    renderTracker();
+  }
+
+  // Parse domain transitions
+  const domMatch=display.match(/---\s*MOVING TO (.+?)\s*---/);
+  if(domMatch){
+    display=display.replace(/---\s*MOVING TO .+?\s*---/g,'').trim();
+    handleDomainMove(domMatch[1].trim().toUpperCase());
+  }
+  if(display.includes('--- INSPECTION COMPLETE ---')){
+    display=display.replace(/---\s*INSPECTION COMPLETE\s*---/g,'').trim();
+    handleComplete();
+  }
+
+  // Look for concern language to upgrade coverage status
+  if(role==='inspector'){
+    const lower=text.toLowerCase();
+    if(qsMarkers){
+      qsMarkers.forEach(m=>{
+        const id=m.replace(/[\[\]]/g,'');
+        if(lower.includes('concern')||lower.includes('gap')||lower.includes('worry')||lower.includes('not clear')||lower.includes('missing')||lower.includes('unable to evidence')){
+          qsCoverage[id]='concern';
+        }
+      });
+      renderTracker();
+    }
+  }
+
+  display=display.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  if(display.trim()){
+    div.className=`msg ${cls}`;
+    div.innerHTML=`<div class="snd">${sender}</div><div class="bub">${display}</div><div class="mtime">${now}</div>`;
+    c.appendChild(div);
+  }
+  c.scrollTop=c.scrollHeight;
+}
+
+function addSysMsg(t){const c=document.getElementById('msgs');const d=document.createElement('div');d.className='msg s';d.innerHTML=`<span class="bub">${t}</span>`;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function showTyp(){const c=document.getElementById('msgs');const d=document.createElement('div');d.className='msg i';d.id='typ';d.innerHTML=`<div class="snd">🔍 CQC Reviewer</div><div class="typing"><span></span><span></span><span></span></div>`;c.appendChild(d);c.scrollTop=c.scrollHeight;}
+function hideTyp(){const e=document.getElementById('typ');if(e)e.remove();}
+
+function handleDomainMove(name){
+  const map={SAFE:0,EFFECTIVE:1,CARING:2,RESPONSIVE:3,'WELL-LED':4,'WELL LED':4};
+  const idx=map[name];
+  if(idx!==undefined){
+    // Mark any uncovered QS in current domain as gaps
+    const curD=QS_DATA[DOMAINS[curDom]];
+    curD.qs.forEach(q=>{if(qsCoverage[q.id]==='pending')qsCoverage[q.id]='gap';});
+    curDom=idx;
+    addSysMsg(`${QS_DATA[DOMAINS[idx]].icon} Moving to ${QS_DATA[DOMAINS[idx]].label} domain`);
+    renderTracker();
+  }
+}
+
+function handleComplete(){
+  // Mark remaining pending as gaps
+  DOMAINS.forEach(dk=>{QS_DATA[dk].qs.forEach(q=>{if(qsCoverage[q.id]==='pending')qsCoverage[q.id]='gap';});});
+  renderTracker();
+  addSysMsg('✅ Inspection complete — generate your full report');
+}
+
+// ======================================================================
+// AI
+// ======================================================================
+async function sendAI(userMsg,isFirst=false){
+  streaming=true;
+  document.getElementById('sbtn').disabled=true;
+
+  if(isFirst){
+    history=[{role:'user',content:'I\'m ready for the review. Please start with your first question about the Safe domain. Remember to include [[QS_ID]] markers when you\'ve covered each quality statement\'s evidence checkpoints.'}];
+  } else {
+    history.push({role:'user',content:userMsg});
+  }
+
+  showTyp();
+
+  try{
+    const res=await fetch('/.netlify/functions/chat',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:buildPrompt(),messages:history})
+    });
+    const data=await res.json();
+    const text=(data.content||[]).map(c=>c.text||'').join('');
+    hideTyp();
+    history.push({role:'assistant',content:text});
+    addMsg('inspector',text);
+  }catch(err){
+    hideTyp();
+    console.error(err);
+    addMsg('inspector','I apologise — I\'m experiencing a technical issue. Could you repeat that?');
+  }
+
+  streaming=false;
+  document.getElementById('sbtn').disabled=false;
+  document.getElementById('cinput').focus();
+}
+
+function send(){
+  const inp=document.getElementById('cinput');const t=inp.value.trim();
+  if(!t||streaming)return;
+  addMsg('user',t);inp.value='';inp.style.height='auto';
+  sendAI(t);
+}
+
+function askClarify(){
+  if(streaming)return;
+  const m="Could you clarify what specific evidence you're looking for? What would satisfy you on this point?";
+  addMsg('user',m);sendAI(m);
+}
+
+function skipToNext(){
+  if(streaming)return;
+  const nextDom=DOMAINS[curDom+1];
+  const m=nextDom?`I'd like to move on to the ${QS_DATA[nextDom].label} domain now.`:`I think we've covered all domains. Could you wrap up?`;
+  addMsg('user',m);sendAI(m);
+}
+
+function promptMissed(){
+  if(streaming)return;
+  const d=QS_DATA[DOMAINS[curDom]];
+  const missed=d.qs.filter(q=>qsCoverage[q.id]==='pending');
+  if(!missed.length){addSysMsg('All quality statements in this domain have been covered');return;}
+  const areas=missed.map(q=>`${q.id}: ${q.t}`).join(', ');
+  const m=`Before we move on, could you also ask me about these areas we haven't covered yet: ${areas}`;
+  addMsg('user',m);sendAI(m);
+}
+
+// Auto-resize
+document.addEventListener('DOMContentLoaded',()=>{const ta=document.getElementById('cinput');if(ta)ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,140)+'px';});});
+
+// ======================================================================
+// REPORT
+// ======================================================================
+async function generateReport(){
+  showScreen('report');
+  const el=document.getElementById('rpt-content');
+  el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;padding:40px">
+    <div class="spinner" style="width:60px;height:60px;margin-bottom:20px"></div>
+    <h3 style="font-family:var(--font-display);color:var(--navy);font-size:20px;margin-bottom:8px">Generating Inspection Report</h3>
+    <p style="color:var(--muted);font-size:14px" id="gen-st">Analysing inspection transcript...</p></div>`;
+
+  const transcript=history.map(m=>`${m.role==='user'?'MANAGER':'INSPECTOR'}: ${m.content}`).join('\n\n');
+
+  // Build coverage summary
+  let covSummary='QUALITY STATEMENT COVERAGE:\n';
+  DOMAINS.forEach(dk=>{
+    const d=QS_DATA[dk];
+    covSummary+=`\n${d.label}:\n`;
+    d.qs.forEach(q=>{covSummary+=`  ${q.id} (${q.t}): ${qsCoverage[q.id]}\n`;});
+  });
+
+  const prompt=`You completed a CQC readiness review of a care home. Analyse the transcript and coverage data to produce a comprehensive report.
+
+CARE HOME: ${ctx.name||'Not specified'} (${ctx.type||'Residential'}, ${ctx.size||'?'} beds, ${ctx.loc||''})
+Current Rating: ${ctx.rating||'Unknown'}
+
+${covSummary}
+
+TRANSCRIPT:
+${transcript}
+
+Return ONLY valid JSON (no markdown, no backticks):
+
+{
+  "overallSummary": "3-4 paragraph executive summary referencing specific findings from the inspection. Be specific about what was evidenced and what was not.",
+  "safe": {
+    "rating": "outstanding|good|requiresImprovement|inadequate",
+    "findings": "2-3 paragraph summary of this domain, referencing specific manager responses and evidence gaps",
+    "strengths": ["specific strength with evidence"],
+    "gaps": ["specific gap with regulatory reference and QS ID"],
+    "actions": ["specific required action with timeframe"]
+  },
+  "effective": { same },
+  "caring": { same },
+  "responsive": { same },
+  "wellLed": { same },
+  "priorityActions": ["Top 5 actions in priority order with timeframes"],
+  "inspectionReadiness": "Direct assessment of inspection readiness. Likely overall rating. Critical gaps. What inspector would focus on.",
+  "positiveHighlights": ["2-3 genuinely impressive findings"],
+  "coverageNotes": "Note any quality statements that were not adequately explored during the inspection and flag these as areas requiring further self-assessment."
+}
+
+Rating criteria:
+- Outstanding: Exceptional evidence, innovation, clear positive outcomes demonstrated
+- Good: Solid systems, consistent evidence, well-documented practice
+- Requires Improvement: Gaps, vague responses, missing evidence, inconsistencies
+- Inadequate: Major safety gaps, inability to evidence basic requirements, concerning responses
+
+Quality statements marked as 'gap' in coverage data were NOT discussed during inspection — flag these prominently. Those marked 'concern' had issues identified. Be rigorous and reference specific conversation moments.`;
+
+  try{
+    document.getElementById('gen-st').textContent='Mapping findings to quality statements...';
+    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+    document.getElementById('gen-st').textContent='Generating recommendations...';
+    const data=await res.json();
+    const text=(data.content||[]).map(c=>c.text||'').join('');
+    report=JSON.parse(text.replace(/```json|```/g,'').trim());
+  }catch(err){
+    console.error(err);
+    report={overallSummary:'Report generation failed.',priorityActions:['Retry report generation'],inspectionReadiness:'Unable to assess.',positiveHighlights:[],coverageNotes:'Error generating report.'};
+    DOMAINS.forEach(dk=>{report[dk]={rating:'requiresImprovement',findings:'Error generating analysis.',strengths:[],gaps:['Report error'],actions:['Regenerate report']};});
+  }
+
+  renderReport();
+}
+
+function renderReport(){
+  const el=document.getElementById('rpt-content');
+  const ds=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const gp=DOMAINS.filter(dk=>report[dk]&&(report[dk].rating==='good'||report[dk].rating==='outstanding')).length;
+  const tg=DOMAINS.reduce((a,dk)=>a+(report[dk]?.gaps?.length||0),0);
+  const covPct=Math.round((getCoveredQS()/getTotalQS())*100);
+
+  let h=`<div class="rpt"><div class="rpt-hdr">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;opacity:.7;margin-bottom:6px">CQC Readiness Review Report</div>
+    <h1>${ctx.name||'Care Home'}</h1><p class="sub">${ctx.type||''} · ${ctx.size||'?'} beds · ${ctx.loc||''}</p>
+    <div class="rpt-stats">
+      <div class="rpt-stat"><strong>${gp}/5</strong><span>Domains Good+</span></div>
+      <div class="rpt-stat"><strong>${tg}</strong><span>Gaps Found</span></div>
+      <div class="rpt-stat"><strong>${covPct}%</strong><span>QS Coverage</span></div>
+      <div class="rpt-stat"><strong>${getCoveredQS()}/${getTotalQS()}</strong><span>Statements Covered</span></div>
+      <div class="rpt-stat"><span style="font-size:12px">${ds}</span><br><span>Date</span></div>
+    </div></div>`;
+
+  // Rating grid
+  h+='<div class="rgrid">';
+  DOMAINS.forEach(dk=>{const d=QS_DATA[dk];const r=report[dk]?.rating||'pending';const ri=RM[r]||RM.pending;
+    h+=`<div class="rcell" style="background:${ri.bg};border:2px solid ${ri.c}30"><div class="ri">${d.icon}</div><div class="rl" style="color:${d.color}">${d.label}</div><div class="rr" style="color:${ri.c}">${ri.i} ${ri.l}</div></div>`;});
+  h+='</div>';
+
+  // Coverage map
+  h+=`<div class="rbox" style="background:#F8F9FF;border:1px solid #E8EAF6"><h3 style="color:var(--navy)">Quality Statement Coverage</h3>`;
+  DOMAINS.forEach(dk=>{
+    const d=QS_DATA[dk];
+    h+=`<div style="font-size:12px;font-weight:700;color:${d.color};margin:10px 0 6px">${d.icon} ${d.label}</div><div class="cov-grid">`;
+    d.qs.forEach(q=>{
+      const st=qsCoverage[q.id];
+      const dotCls=st==='covered'?'g':st==='concern'?'o':st==='gap'?'r':'x';
+      h+=`<div class="cov-item"><span class="cd ${dotCls}"></span>${q.id}: ${q.t}</div>`;
+    });
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // Exec summary
+  if(report.overallSummary)h+=`<div class="rbox" style="background:#F8F9FF;border:1px solid #E8EAF6"><h3 style="color:var(--navy)">Executive Summary</h3><p>${report.overallSummary.replace(/\n/g,'<br>')}</p></div>`;
+
+  // Readiness
+  if(report.inspectionReadiness)h+=`<div class="rbox" style="background:#E3F2FD;border:1px solid #90CAF9"><h3 style="color:#1565C0">🔍 Inspection Readiness</h3><p>${report.inspectionReadiness.replace(/\n/g,'<br>')}</p></div>`;
+
+  // Highlights
+  if(report.positiveHighlights?.length){h+=`<div class="rbox" style="background:#E8F5E9;border:1px solid #A5D6A7"><h3 style="color:#2E7D32">✓ Positive Highlights</h3>`;report.positiveHighlights.forEach(x=>{h+=`<div class="rfind str">${x}</div>`;});h+='</div>';}
+
+  // Domain reports
+  DOMAINS.forEach(dk=>{
+    const d=QS_DATA[dk];const a=report[dk];if(!a)return;const ri=RM[a.rating]||RM.pending;
+    h+=`<div class="rbox" style="background:#fff;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:24px">${d.icon}</span><div style="flex:1"><h3 style="color:${d.color};margin:0">${d.label}</h3><p style="font-size:11px;color:var(--muted);margin:0">${d.desc}</p></div>
+        <span style="padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;background:${ri.bg};color:${ri.c};border:1.5px solid ${ri.c}30">${ri.i} ${ri.l}</span></div>`;
+    if(a.findings)h+=`<p style="font-size:13px;line-height:1.7;margin-bottom:12px">${a.findings.replace(/\n/g,'<br>')}</p>`;
+    if(a.strengths?.length){h+=`<div style="font-size:12px;font-weight:700;color:#2E7D32;margin-bottom:4px">Strengths</div>`;a.strengths.forEach(s=>{h+=`<div class="rfind str">${s}</div>`;});h+='<div style="margin-bottom:10px"></div>';}
+    if(a.gaps?.length){h+=`<div style="font-size:12px;font-weight:700;color:#E65100;margin-bottom:4px">Gaps &amp; Concerns</div>`;a.gaps.forEach(g=>{h+=`<div class="rfind gap">${g}</div>`;});h+='<div style="margin-bottom:10px"></div>';}
+    if(a.actions?.length){h+=`<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Required Actions</div>`;a.actions.forEach(a=>{h+=`<div class="rfind act">${a}</div>`;});}
+    h+='</div>';
+  });
+
+  // Priority actions
+  if(report.priorityActions?.length){h+=`<div class="pbox"><h3>⚡ Priority Actions</h3>`;report.priorityActions.forEach((a,i)=>{h+=`<div class="pi"><span class="pn">${i+1}</span><p style="font-size:13px;line-height:1.6">${a}</p></div>`;});h+='</div>';}
+
+  // Coverage notes
+  if(report.coverageNotes)h+=`<div class="rbox" style="background:#FFF8E1;border:1px solid #FFE082"><h3 style="color:#F57F17">⚠️ Coverage Notes</h3><p>${report.coverageNotes.replace(/\n/g,'<br>')}</p></div>`;
+
+  h+=`<div style="text-align:center;padding:24px 0 48px;border-top:1px solid var(--border);margin-top:16px">
+    <p style="font-size:12px;color:#999">AI-powered readiness review simulation — not a substitute for professional CQC guidance.</p>
+    <p style="font-size:13px;background:linear-gradient(90deg,#7B1FA2,#D500F9,#00BCD4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;margin-top:8px">powered by neos wave</p></div></div>`;
+
+  el.innerHTML=h;
+}
+</script>
+</body>
+</html>
