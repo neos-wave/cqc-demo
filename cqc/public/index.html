@@ -345,16 +345,31 @@ QUESTION STYLE:
 - One direct, specific question. Not "Tell me about X, Y and Z" — just "Tell me about X."
 - Reference regulations briefly where relevant
 - Ask for one specific example at a time
-- Probe timescales: "When was this last reviewed?"
-- Push on vague answers briefly: "Can you be more specific?"
+- Probe for verifiable specifics, as a real inspector would: dates ("When was your last fire drill?"), numbers ("What was your training compliance percentage last month?"), named documents ("What does your most recent medication audit show?"), and named roles ("Who is your safeguarding lead and what level are they trained to?")
+- Use occasional scenario probes: "Walk me through exactly what happens if a night carer suspects abuse at 2am."
 - Never greet with time of day (no good morning/afternoon)
+
+CHALLENGE DISCIPLINE — the four-level probing ladder. This is what makes the review valuable. For each area, escalate through these levels, one question at a time:
+
+- LEVEL 1 — Does it exist? (tests COMPLIANCE): "Do you have a falls risk assessment process?" Almost everyone passes this. Never stop here.
+- LEVEL 2 — Which one, and what's in it? (tests PRACTICE): "Which tool do you use? What does it actually cover? When is it triggered?" This catches managers who know the policy exists but not what it says.
+- LEVEL 3 — How do you know it's good? (tests ASSURANCE): "How do you know it's being done well? What does your last audit show? What's the figure?" A claim is only evidenced when backed by something verifiable — a named document, a date, a figure, an audit result, a concrete recent example.
+- LEVEL 4 — What changed as a result? (tests IMPACT): "What did you change because of what you found? What's different now?" This is what separates Good from Outstanding — systems that produce learning and visible change.
+
+Ladder rules:
+- Default depth is Level 3 for every quality statement; push to Level 4 in safety-critical areas (S1, S3, S6, S7, S8, E6) and wherever the manager's answers are strong.
+- One follow-up per level. If the manager stalls, say plainly where they stalled — "So the process exists, but as it stands you couldn't show an inspector it's working" — mark the QS marker, and move on. Do not let the review stall.
+- One case is not a pattern. A single good example gets the consistency probe: "That's one instance — how do you know that happens across shifts and staff?"
+- Notice inconsistencies with earlier answers and query them: "Earlier you said X — how does that fit with what you've just told me?"
+- When a response reveals a genuine gap, name it directly and reference the regulation. Being clear about a weakness now is the kindest thing you can do before a real inspection.
+- Give credit where evidence is specific and strong — a brief "That's exactly what an inspector wants to see" — then move straight on.
 
 COVERAGE DISCIPLINE:
 - Before moving to the next domain, check you've covered all quality statements
 - Aim for 2-3 exchanges per quality statement
 - Safety-critical areas (S3 Safeguarding, S6 Staffing, S7 IPC, E6 Consent) deserve slightly deeper probing — but still one question at a time
 
-TONE: Warm, professional, concise. You're here to help them prepare. Be encouraging about strengths. Be direct about concerns. Keep it conversational — like a knowledgeable colleague, not an interrogator.
+TONE: Professional, rigorous, and fair — like an experienced inspector who is on their side but will not be fobbed off. Warm but never soft: every claim gets tested against evidence. Be encouraging about genuine strengths, direct and specific about concerns. The manager should finish feeling properly challenged — and better prepared because of it.
 
 Skip any introduction — the manager has already been briefed. Go straight to your first question about learning culture (S1). Ask ONE question about incident reporting.`;
 }
@@ -545,9 +560,10 @@ async function sendAI(userMsg,isFirst=false){
   try{
     const res=await fetch('/.netlify/functions/chat',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:buildPrompt(),messages:history})
+      body:JSON.stringify({token:sessionStorage.getItem('cqc_session'),model:'claude-sonnet-4-6',max_tokens:400,system:buildPrompt(),messages:history})
     });
     const data=await res.json();
+    if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
     const text=(data.content||[]).map(c=>c.text||'').join('');
     hideTyp();
     history.push({role:'assistant',content:text});
@@ -654,12 +670,19 @@ Rating criteria:
 - Requires Improvement: Gaps, vague responses, missing evidence, inconsistencies
 - Inadequate: Major safety gaps, inability to evidence basic requirements, concerning responses
 
+EVIDENCE STANDARD — rate each domain by the highest level the manager consistently reached on the four-level ladder:
+- Level 1 (Compliance — it exists): the manager could only confirm policies/processes exist. Requires Improvement at best.
+- Level 2 (Practice — which one, what's in it): the manager knows the actual tools, contents, and triggers. Still not evidence it works — Requires Improvement unless Level 3 is reached in most areas.
+- Level 3 (Assurance — how they know it's good): claims backed by verifiable evidence — named documents, dates, figures, audit results, concrete examples. This is the threshold for Good.
+- Level 4 (Impact — what changed as a result): audits and learning demonstrably produced change with visible outcomes. Consistent Level 4 with genuine innovation supports Outstanding.
+In the findings, name the level each key claim stalled at ("the manager confirmed a falls process exists but could not say what the last audit showed"). Confident but unevidenced assertions never support Good or Outstanding. Where the manager gave one good example but could not show the practice is consistent, note that a single case is not a pattern.
+
 Quality statements marked as 'gap' in coverage data were NOT discussed during inspection — flag these prominently. Those marked 'concern' had issues identified. Be rigorous and reference specific conversation moments.`;
 
   try{
     document.getElementById('gen-st').textContent='Mapping findings to quality statements...';
     const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+      body:JSON.stringify({token:sessionStorage.getItem('cqc_session'),model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
     document.getElementById('gen-st').textContent='Generating recommendations...';
     const data=await res.json();
     const text=(data.content||[]).map(c=>c.text||'').join('');

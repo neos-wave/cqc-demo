@@ -7,6 +7,28 @@
 // In Netlify dashboard → Site settings → Environment variables:
 // ANTHROPIC_API_KEY = sk-ant-... (your Anthropic API key)
 
+const crypto = require("crypto");
+
+// Must mirror the token scheme in validate-pin.js (same env vars).
+function verifyToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const secret = process.env.CQC_SESSION_SECRET || "neos-wave-demo-secret-change-me";
+  const parts = token.split(":");
+  if (parts.length !== 2) return false;
+
+  const [expiry, signature] = parts;
+  if (Date.now() > parseInt(expiry)) return false;
+
+  const pin = process.env.CQC_ACCESS_PIN || "291025";
+  const payload = `${pin}:${expiry}`;
+  const expected = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+
+  const sigBuf = Buffer.from(signature);
+  const expBuf = Buffer.from(expected);
+  if (sigBuf.length !== expBuf.length) return false;
+  return crypto.timingSafeEqual(sigBuf, expBuf);
+}
+
 exports.handler = async (event) => {
   const headers = {
     "Access-Control-Allow-Origin": "*",
@@ -34,6 +56,14 @@ exports.handler = async (event) => {
   try {
     const body = JSON.parse(event.body || "{}");
 
+    if (!verifyToken(body.token)) {
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: "Invalid or expired session — please re-enter your access code" }),
+      };
+    }
+
     // Validate required fields
     if (!body.messages || !Array.isArray(body.messages)) {
       return {
@@ -45,7 +75,7 @@ exports.handler = async (event) => {
 
     // Build the Anthropic API request
     const apiBody = {
-      model: body.model || "claude-sonnet-4-20250514",
+      model: body.model || "claude-sonnet-4-6",
       max_tokens: body.max_tokens || 1200,
       messages: body.messages,
     };
