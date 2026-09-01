@@ -713,6 +713,45 @@ HARD LIMIT: the entire JSON must be under 350 words. It will be truncated if lon
   renderReport();
 }
 
+// Compact structured payload for the email — the function renders and
+// escapes it server-side, so no markup crosses the wire.
+function buildEmailPayload(){
+  const ds=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const tg=DOMAINS.reduce((a,dk)=>a+(report[dk]?.gaps?.length||0),0);
+  return{
+    careHome:{name:ctx.name||'Care Home',type:ctx.type||'',size:ctx.size||'',loc:ctx.loc||''},
+    generatedDate:ds,
+    stats:{covered:getCoveredQS(),total:getTotalQS(),gaps:tg},
+    overallSummary:report.overallSummary||'',
+    inspectionReadiness:report.inspectionReadiness||'',
+    priorityActions:report.priorityActions||[],
+    coverageNotes:report.coverageNotes||'',
+    domains:DOMAINS.map(dk=>({label:QS_DATA[dk].label,rating:report[dk]?.rating||'pending',findings:report[dk]?.findings||'',strengths:report[dk]?.strengths||[],gaps:report[dk]?.gaps||[],actions:report[dk]?.actions||[]}))
+  };
+}
+
+async function emailReport(){
+  const inp=document.getElementById('rpt-email');
+  const btn=document.getElementById('rpt-email-btn');
+  const st=document.getElementById('rpt-email-status');
+  const email=(inp.value||'').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){st.textContent='Please enter a valid email address';return;}
+  if(!report){st.textContent='Generate the report first';return;}
+  btn.disabled=true;st.textContent='Sending...';
+  try{
+    const res=await fetch('/.netlify/functions/send-report',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({token:sessionStorage.getItem('cqc_session'),email,report:buildEmailPayload()})});
+    const d=await res.json();
+    if(!res.ok||!d.sent)throw new Error(d.error||'send failed');
+    st.textContent='✓ Report sent to '+email;
+    inp.disabled=true;
+  }catch(err){
+    console.error(err);
+    st.textContent=(err.message&&err.message.length<120)?err.message:'Could not send — please try again';
+    btn.disabled=false;
+  }
+}
+
 function renderReport(){
   const el=document.getElementById('rpt-content');
   const ds=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
@@ -730,6 +769,14 @@ function renderReport(){
       <div class="rpt-stat"><strong>${getCoveredQS()}/${getTotalQS()}</strong><span>Statements Covered</span></div>
       <div class="rpt-stat"><span style="font-size:12px">${ds}</span><br><span>Date</span></div>
     </div></div>`;
+
+  // Email capture
+  h+=`<div class="rbox" style="background:#fff;border:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px"><h3 style="color:var(--navy);font-size:15px;margin-bottom:2px">📧 Email me this report</h3>
+    <p style="font-size:12px;color:var(--muted);margin:0">Get a copy of the full report in your inbox</p></div>
+    <input id="rpt-email" type="email" placeholder="you@carehome.co.uk" style="flex:1;min-width:220px;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:14px;outline:none">
+    <button id="rpt-email-btn" onclick="emailReport()" style="padding:10px 20px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600">Send</button>
+    <div id="rpt-email-status" style="width:100%;font-size:12px;font-weight:600;color:var(--navy);min-height:16px"></div></div>`;
 
   // Rating grid
   h+='<div class="rgrid">';
