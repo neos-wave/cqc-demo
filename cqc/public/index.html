@@ -615,6 +615,27 @@ document.addEventListener('DOMContentLoaded',()=>{const ta=document.getElementBy
 // ======================================================================
 // REPORT
 // ======================================================================
+// One small AI call. Kept under ~700 output tokens so each Netlify function
+// invocation finishes inside the platform's synchronous timeout — a single
+// large report call reliably 504s.
+async function reportCall(prompt,maxTokens){
+  const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({token:sessionStorage.getItem('cqc_session'),model:'claude-sonnet-4-6',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})});
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
+  const text=(data.content||[]).map(c=>c.text||'').join('');
+  return JSON.parse(text.replace(/```json|```/g,'').trim());
+}
+
+const EVIDENCE_STANDARD=`EVIDENCE STANDARD — rate by the highest level the manager consistently reached on the four-level ladder:
+- Level 1 (Compliance — it exists): only confirmed policies/processes exist. Requires Improvement at best.
+- Level 2 (Practice — which one, what's in it): knows the actual tools, contents, triggers. Still not evidence it works.
+- Level 3 (Assurance — how they know it's good): claims backed by verifiable evidence — named documents, dates, figures, audit results, concrete examples. Threshold for Good.
+- Level 4 (Impact — what changed as a result): audits and learning demonstrably produced change. Consistent Level 4 with innovation supports Outstanding.
+Name the level each key claim stalled at. Confident but unevidenced assertions never support Good or Outstanding. A single good example without consistency evidence is not a pattern.
+
+Rating values: "outstanding"|"good"|"requiresImprovement"|"inadequate". Quality statements marked 'gap' were NOT discussed — flag prominently. 'concern' had issues identified. Reference specific conversation moments.`;
+
 async function generateReport(){
   showScreen('report');
   const el=document.getElementById('rpt-content');
@@ -633,7 +654,7 @@ async function generateReport(){
     d.qs.forEach(q=>{covSummary+=`  ${q.id} (${q.t}): ${qsCoverage[q.id]}\n`;});
   });
 
-  const prompt=`You completed a CQC readiness review of a care home. Analyse the transcript and coverage data to produce a comprehensive report.
+  const context=`You completed a CQC readiness review of a care home.
 
 CARE HOME: ${ctx.name||'Not specified'} (${ctx.type||'Residential'}, ${ctx.size||'?'} beds, ${ctx.loc||''})
 Current Rating: ${ctx.rating||'Unknown'}
@@ -643,55 +664,46 @@ ${covSummary}
 TRANSCRIPT:
 ${transcript}
 
-Return ONLY valid JSON (no markdown, no backticks):
+${EVIDENCE_STANDARD}`;
 
+  const domainPrompt=dk=>`${context}
+
+Analyse ONLY the ${QS_DATA[dk].label} domain (${QS_DATA[dk].desc}). Return ONLY valid JSON (no markdown, no backticks):
 {
-  "overallSummary": "3-4 paragraph executive summary referencing specific findings from the inspection. Be specific about what was evidenced and what was not.",
-  "safe": {
-    "rating": "outstanding|good|requiresImprovement|inadequate",
-    "findings": "2-3 paragraph summary of this domain, referencing specific manager responses and evidence gaps",
-    "strengths": ["specific strength with evidence"],
-    "gaps": ["specific gap with regulatory reference and QS ID"],
-    "actions": ["specific required action with timeframe"]
-  },
-  "effective": { same },
-  "caring": { same },
-  "responsive": { same },
-  "wellLed": { same },
+  "rating": "outstanding|good|requiresImprovement|inadequate",
+  "findings": "1-2 short paragraphs referencing specific manager responses, evidence gaps, and the ladder level key claims stalled at",
+  "strengths": ["specific strength with evidence"],
+  "gaps": ["specific gap with regulatory reference and QS ID"],
+  "actions": ["specific required action with timeframe"]
+}`;
+
+  const overviewPrompt=`${context}
+
+Produce the report overview. Return ONLY valid JSON (no markdown, no backticks):
+{
+  "overallSummary": "2-3 short paragraph executive summary. Be specific about what was evidenced and what was not.",
   "priorityActions": ["Top 5 actions in priority order with timeframes"],
-  "inspectionReadiness": "Direct assessment of inspection readiness. Likely overall rating. Critical gaps. What inspector would focus on.",
-  "positiveHighlights": ["2-3 genuinely impressive findings"],
-  "coverageNotes": "Note any quality statements that were not adequately explored during the inspection and flag these as areas requiring further self-assessment."
-}
+  "inspectionReadiness": "One direct paragraph: readiness, likely overall rating, critical gaps, what an inspector would focus on.",
+  "positiveHighlights": ["2-3 genuinely impressive findings — empty array if none were evidenced"],
+  "coverageNotes": "Short note on quality statements not adequately explored, flagged for further self-assessment."
+}`;
 
-Rating criteria:
-- Outstanding: Exceptional evidence, innovation, clear positive outcomes demonstrated
-- Good: Solid systems, consistent evidence, well-documented practice
-- Requires Improvement: Gaps, vague responses, missing evidence, inconsistencies
-- Inadequate: Major safety gaps, inability to evidence basic requirements, concerning responses
+  let done=0;const total=DOMAINS.length+1;
+  const tick=()=>{done++;const st=document.getElementById('gen-st');if(st)st.textContent=`Analysing findings... ${done}/${total} sections complete`;};
 
-EVIDENCE STANDARD — rate each domain by the highest level the manager consistently reached on the four-level ladder:
-- Level 1 (Compliance — it exists): the manager could only confirm policies/processes exist. Requires Improvement at best.
-- Level 2 (Practice — which one, what's in it): the manager knows the actual tools, contents, and triggers. Still not evidence it works — Requires Improvement unless Level 3 is reached in most areas.
-- Level 3 (Assurance — how they know it's good): claims backed by verifiable evidence — named documents, dates, figures, audit results, concrete examples. This is the threshold for Good.
-- Level 4 (Impact — what changed as a result): audits and learning demonstrably produced change with visible outcomes. Consistent Level 4 with genuine innovation supports Outstanding.
-In the findings, name the level each key claim stalled at ("the manager confirmed a falls process exists but could not say what the last audit showed"). Confident but unevidenced assertions never support Good or Outstanding. Where the manager gave one good example but could not show the practice is consistent, note that a single case is not a pattern.
+  const results=await Promise.allSettled([
+    ...DOMAINS.map(dk=>reportCall(domainPrompt(dk),650).then(r=>{tick();return r;})),
+    reportCall(overviewPrompt,700).then(r=>{tick();return r;})
+  ]);
 
-Quality statements marked as 'gap' in coverage data were NOT discussed during inspection — flag these prominently. Those marked 'concern' had issues identified. Be rigorous and reference specific conversation moments.`;
-
-  try{
-    document.getElementById('gen-st').textContent='Mapping findings to quality statements...';
-    const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({token:sessionStorage.getItem('cqc_session'),model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
-    document.getElementById('gen-st').textContent='Generating recommendations...';
-    const data=await res.json();
-    const text=(data.content||[]).map(c=>c.text||'').join('');
-    report=JSON.parse(text.replace(/```json|```/g,'').trim());
-  }catch(err){
-    console.error(err);
-    report={overallSummary:'Report generation failed.',priorityActions:['Retry report generation'],inspectionReadiness:'Unable to assess.',positiveHighlights:[],coverageNotes:'Error generating report.'};
-    DOMAINS.forEach(dk=>{report[dk]={rating:'requiresImprovement',findings:'Error generating analysis.',strengths:[],gaps:['Report error'],actions:['Regenerate report']};});
-  }
+  report={};
+  DOMAINS.forEach((dk,i)=>{
+    if(results[i].status==='fulfilled'){report[dk]=results[i].value;}
+    else{console.error(dk,results[i].reason);report[dk]={rating:'requiresImprovement',findings:'This section could not be generated — please regenerate the report.',strengths:[],gaps:['Section generation error'],actions:['Regenerate report']};}
+  });
+  const ov=results[DOMAINS.length];
+  if(ov.status==='fulfilled'){Object.assign(report,ov.value);}
+  else{console.error('overview',ov.reason);Object.assign(report,{overallSummary:'The report overview could not be generated — please regenerate the report.',priorityActions:['Retry report generation'],inspectionReadiness:'Unable to assess.',positiveHighlights:[],coverageNotes:'Error generating overview.'});}
 
   renderReport();
 }
