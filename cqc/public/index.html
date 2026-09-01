@@ -671,29 +671,34 @@ ${EVIDENCE_STANDARD}`;
 Analyse ONLY the ${QS_DATA[dk].label} domain (${QS_DATA[dk].desc}). Return ONLY valid JSON (no markdown, no backticks):
 {
   "rating": "outstanding|good|requiresImprovement|inadequate",
-  "findings": "1-2 short paragraphs referencing specific manager responses, evidence gaps, and the ladder level key claims stalled at",
-  "strengths": ["specific strength with evidence"],
-  "gaps": ["specific gap with regulatory reference and QS ID"],
-  "actions": ["specific required action with timeframe"]
-}`;
+  "findings": "ONE short paragraph (max 90 words) referencing specific manager responses, evidence gaps, and the ladder level key claims stalled at",
+  "strengths": ["specific strength with evidence — max 3 items"],
+  "gaps": ["specific gap with regulatory reference and QS ID — max 4 items. Roll ALL quality statements that were not discussed into a SINGLE item listing their IDs, e.g. 'S5, S7, S8 not discussed — no evidence obtained'"],
+  "actions": ["specific required action with timeframe — max 3 items"]
+}
+HARD LIMIT: the entire JSON must be under 300 words. It will be truncated if longer, so be selective — most important items only.`;
 
   const overviewPrompt=`${context}
 
 Produce the report overview. Return ONLY valid JSON (no markdown, no backticks):
 {
-  "overallSummary": "2-3 short paragraph executive summary. Be specific about what was evidenced and what was not.",
-  "priorityActions": ["Top 5 actions in priority order with timeframes"],
-  "inspectionReadiness": "One direct paragraph: readiness, likely overall rating, critical gaps, what an inspector would focus on.",
+  "overallSummary": "Executive summary, 2 short paragraphs, max 120 words total. Be specific about what was evidenced and what was not.",
+  "priorityActions": ["Top 5 actions in priority order with timeframes — one sentence each"],
+  "inspectionReadiness": "One direct paragraph, max 80 words: readiness, likely overall rating, critical gaps, what an inspector would focus on.",
   "positiveHighlights": ["2-3 genuinely impressive findings — empty array if none were evidenced"],
-  "coverageNotes": "Short note on quality statements not adequately explored, flagged for further self-assessment."
-}`;
+  "coverageNotes": "1-2 sentences listing the quality statement IDs not adequately explored, flagged for further self-assessment."
+}
+HARD LIMIT: the entire JSON must be under 350 words. It will be truncated if longer, so be selective.`;
 
   let done=0;const total=DOMAINS.length+1;
   const tick=()=>{done++;const st=document.getElementById('gen-st');if(st)st.textContent=`Analysing findings... ${done}/${total} sections complete`;};
 
+  // One automatic retry per section — truncation/parse failures are stochastic
+  const withRetry=(prompt,max)=>reportCall(prompt,max).catch(()=>reportCall(prompt,max));
+
   const results=await Promise.allSettled([
-    ...DOMAINS.map(dk=>reportCall(domainPrompt(dk),650).then(r=>{tick();return r;})),
-    reportCall(overviewPrompt,700).then(r=>{tick();return r;})
+    ...DOMAINS.map(dk=>withRetry(domainPrompt(dk),650).then(r=>{tick();return r;})),
+    withRetry(overviewPrompt,700).then(r=>{tick();return r;})
   ]);
 
   report={};
