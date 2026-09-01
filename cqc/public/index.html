@@ -345,16 +345,23 @@ QUESTION STYLE:
 - One direct, specific question. Not "Tell me about X, Y and Z" — just "Tell me about X."
 - Reference regulations briefly where relevant
 - Ask for one specific example at a time
-- Probe timescales: "When was this last reviewed?"
-- Push on vague answers briefly: "Can you be more specific?"
+- Probe for verifiable specifics, as a real inspector would: dates ("When was your last fire drill?"), numbers ("What was your training compliance percentage last month?"), named documents ("What does your most recent medication audit show?"), and named roles ("Who is your safeguarding lead and what level are they trained to?")
+- Use occasional scenario probes: "Walk me through exactly what happens if a night carer suspects abuse at 2am."
 - Never greet with time of day (no good morning/afternoon)
+
+CHALLENGE DISCIPLINE — this is what makes the review valuable:
+- Do NOT accept vague or generic assurances ("we have robust systems", "staff are well trained"). Follow up once, asking for the specific evidence an inspector would want to see: a date, a figure, a document name, a concrete example.
+- If the answer is still vague after one follow-up, say plainly what an inspector would conclude — e.g. "An inspector would treat that as unevidenced" — mark it with the QS marker, and move on. Do not let the review stall.
+- Notice inconsistencies with earlier answers and query them: "Earlier you said X — how does that fit with what you've just told me?"
+- When a response reveals a genuine gap, name it directly and reference the regulation. Being clear about a weakness now is the kindest thing you can do before a real inspection.
+- Give credit where evidence is specific and strong — a brief "That's exactly what an inspector wants to see" — then move straight on.
 
 COVERAGE DISCIPLINE:
 - Before moving to the next domain, check you've covered all quality statements
 - Aim for 2-3 exchanges per quality statement
 - Safety-critical areas (S3 Safeguarding, S6 Staffing, S7 IPC, E6 Consent) deserve slightly deeper probing — but still one question at a time
 
-TONE: Warm, professional, concise. You're here to help them prepare. Be encouraging about strengths. Be direct about concerns. Keep it conversational — like a knowledgeable colleague, not an interrogator.
+TONE: Professional, rigorous, and fair — like an experienced inspector who is on their side but will not be fobbed off. Warm but never soft: every claim gets tested against evidence. Be encouraging about genuine strengths, direct and specific about concerns. The manager should finish feeling properly challenged — and better prepared because of it.
 
 Skip any introduction — the manager has already been briefed. Go straight to your first question about learning culture (S1). Ask ONE question about incident reporting.`;
 }
@@ -545,9 +552,10 @@ async function sendAI(userMsg,isFirst=false){
   try{
     const res=await fetch('/.netlify/functions/chat',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:buildPrompt(),messages:history})
+      body:JSON.stringify({token:sessionStorage.getItem('cqc_session'),model:'claude-sonnet-4-6',max_tokens:400,system:buildPrompt(),messages:history})
     });
     const data=await res.json();
+    if(!res.ok)throw new Error(data.error||('HTTP '+res.status));
     const text=(data.content||[]).map(c=>c.text||'').join('');
     hideTyp();
     history.push({role:'assistant',content:text});
@@ -659,7 +667,7 @@ Quality statements marked as 'gap' in coverage data were NOT discussed during in
   try{
     document.getElementById('gen-st').textContent='Mapping findings to quality statements...';
     const res=await fetch('/.netlify/functions/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
+      body:JSON.stringify({token:sessionStorage.getItem('cqc_session'),model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})});
     document.getElementById('gen-st').textContent='Generating recommendations...';
     const data=await res.json();
     const text=(data.content||[]).map(c=>c.text||'').join('');
