@@ -404,7 +404,7 @@ function showScreen(n){['pin-screen','intro-screen','context-screen','inspect-sc
 function startInspection(){
   ctx={name:document.getElementById('c-name').value,type:document.getElementById('c-type').value,size:document.getElementById('c-size').value,loc:document.getElementById('c-loc').value,mgr:document.getElementById('c-mgr').value,rating:document.getElementById('c-rating').value,concerns:document.getElementById('c-concerns').value};
   document.getElementById('i-title').textContent=(ctx.name||'Care Home')+' — Readiness Review';
-  history=[];curDom=0;initCoverage();report=null;
+  history=[];curDom=0;initCoverage();report=null;reportStarted=false;
   showScreen('inspect');
   renderTracker();
   document.getElementById('msgs').innerHTML='';
@@ -535,11 +535,14 @@ function handleDomainMove(name){
   }
 }
 
+let reportStarted=false;
 function handleComplete(){
   // Mark remaining pending as gaps
   DOMAINS.forEach(dk=>{QS_DATA[dk].qs.forEach(q=>{if(qsCoverage[q.id]==='pending')qsCoverage[q.id]='gap';});});
   renderTracker();
-  addSysMsg('✅ Inspection complete — generate your full report');
+  addSysMsg('✅ Inspection complete — generating your report...');
+  // Show the report automatically — don't rely on the button being spotted
+  if(!reportStarted){reportStarted=true;setTimeout(generateReport,1200);}
 }
 
 // ======================================================================
